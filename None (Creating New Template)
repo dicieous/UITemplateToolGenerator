@@ -1,0 +1,49 @@
+{
+    "templateName": "sxdfdsfdf",
+    "elements": [
+        {
+            "elementType": 0,
+            "elementName": "",
+            "buttonText": "",
+            "textValue": "",
+            "fontSize": 0,
+            "spritePath": "",
+            "position": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        },
+        {
+            "elementType": 0,
+            "elementName": "",
+            "buttonText": "",
+            "textValue": "",
+            "fontSize": 0,
+            "spritePath": "",
+            "position": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            }
+        }
+    ]
+}

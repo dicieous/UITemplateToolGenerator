@@ -1,0 +1,74 @@
+{
+    "templateName": "Template 1",
+    "elements": [
+        {
+            "elementType": 2,
+            "elementName": "Parent_Image",
+            "buttonText": "",
+            "textValue": "",
+            "fontSize": 0,
+            "spritePath": "",
+            "position": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 2.0
+            },
+            "parentName": "None"
+        },
+        {
+            "elementType": 0,
+            "elementName": "Child_Button",
+            "buttonText": "",
+            "textValue": "",
+            "fontSize": 0,
+            "spritePath": "",
+            "position": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            },
+            "parentName": "Parent_Image"
+        },
+        {
+            "elementType": 1,
+            "elementName": "Child_Text",
+            "buttonText": "",
+            "textValue": "20",
+            "fontSize": 0,
+            "spritePath": "",
+            "position": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "parentName": "Child_Button"
+        }
+    ]
+}
