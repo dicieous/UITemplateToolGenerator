@@ -3,6 +3,7 @@ using UnityEditor;
 using System;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class UIObjectTemplateGenerator : EditorWindow
@@ -10,7 +11,11 @@ public class UIObjectTemplateGenerator : EditorWindow
     private const int MAX_HEIRARCHY_DEPTH = 50;
 
     private List<UIObjectTemplateData> templateList = new List<UIObjectTemplateData>();
-    private int selectedTemplateIndex = 0;
+    private int selectedTemplateIndex;
+
+    private Rect headerSection;
+    private Texture2D headerSectionTexture;
+    private Color headerSectionColor;
 
     private string templateName;
     private List<UIObjectTemplateElement> elements = new List<UIObjectTemplateElement>();
@@ -28,15 +33,116 @@ public class UIObjectTemplateGenerator : EditorWindow
     {
         SaveSystem.Init();
         SaveSystem.LoadTemplates(templateList);
+        InitTexture();
     }
 
     private void OnGUI()
     {
+        DrawHeader();
         DrawInstantiateElementTab();
     }
 
+    private void InitTexture()
+    {
+        headerSectionColor = new Color(39f / 255f, 53f / 255f, 60f / 255f, 1f);
+        headerSectionTexture = new Texture2D(1, 1);
+        headerSectionTexture.SetPixel(0,0,headerSectionColor);
+        headerSectionTexture.Apply();
+    }
+    
+    private void DrawHeader()
+    {
+        headerSection.x = 0;
+        headerSection.y = 0;
+        headerSection.width = Screen.width;
+        headerSection.height = 179;
+        
+        GUI.DrawTexture(headerSection, headerSectionTexture);
+    }
 
-    private void DisplayUIElements(List<UIObjectTemplateElement> elementList)
+    private void DrawInstantiateElementTab()
+    {
+        GUIStyle guiStyle = new GUIStyle(GUI.skin.label);
+        guiStyle.fontSize = 14;
+        guiStyle.alignment = TextAnchor.MiddleLeft;
+        guiStyle.fontStyle = FontStyle.Bold;
+
+        GUILayout.Label("UI OBJECT TEMPLATE GENERATOR", guiStyle);
+
+        GUILayout.Space(10);
+
+        // Template Selection Dropdown
+        var label = "Select Template";
+        TemplateDropDownSelector(label);
+
+        GUILayout.Space(10);
+
+        GUILayout.Label("Selected Template: " + GetCurrentTemplateName(), EditorStyles.boldLabel);
+
+        GUILayout.Space(10);
+
+        GUILayout.Label("Generated JSON File Path:");
+        EditorGUILayout.LabelField(SaveSystem.GetCurrentJsonFilePath(templateList, selectedTemplateIndex));
+
+        GUILayout.Space(10);
+
+
+        GUILayout.Label("Template Name:");
+        templateName = EditorGUILayout.TextField(templateName);
+
+        GUILayout.Space(10);
+
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.Label("UI ELEMENTS:",EditorStyles.boldLabel,GUILayout.Height(20), GUILayout.Width(90));
+        // Add Element button
+        GUIStyle addButtonGui = new GUIStyle(GUI.skin.button);
+        guiStyle.fontSize = 10;
+        guiStyle.fontStyle = FontStyle.Bold;
+        if (GUILayout.Button("ADD ELEMENT", addButtonGui, GUILayout.Height(20), GUILayout.Width(100)))
+        {
+            elements.Insert(0,new UIObjectTemplateElement());
+        }
+        EditorGUILayout.EndHorizontal();
+        GUILayout.Space(10);
+
+        if (selectedTemplateIndex > 0)
+        {
+            // Load and display UI elements from the selected template
+            UIObjectTemplateData selectedTemplate = templateList[selectedTemplateIndex - 1];
+            elements = new List<UIObjectTemplateElement>(selectedTemplate.elements);
+        }
+
+        // Display UI elements list
+        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+
+        DisplayUIElements(elements);
+
+        EditorGUILayout.EndScrollView();
+
+        EditorGUILayout.BeginHorizontal();
+
+
+
+        GUILayout.Space(5);
+
+        // Generate Template button
+        if (GUILayout.Button("GENERATE TEMPLATE", ButtonsGUI(), GUILayout.Height(30)))
+        {
+            GenerateTemplateFromInput();
+        }
+
+        GUILayout.Space(5);
+
+        // Instantiate UI button
+        if (GUILayout.Button("INSTANTIATE UI", ButtonsGUI(), GUILayout.Height(30)))
+        {
+            InstantiateUITemplate();
+        }
+
+        EditorGUILayout.EndHorizontal();
+    }
+    
+     private void DisplayUIElements(List<UIObjectTemplateElement> elementList)
     {
         for (int i = elements.Count - 1; i >= 0; i--)
         {
@@ -59,9 +165,9 @@ public class UIObjectTemplateGenerator : EditorWindow
 
             // Element Name
             EditorGUILayout.BeginHorizontal();
-            GUILayout.Space(20);
+            GUILayout.Space(25);
 
-            EditorGUILayout.LabelField("|", EditorStyles.boldLabel, GUILayout.Width(10));
+           
             EditorGUILayout.LabelField("Element Name", GUILayout.Width(90));
             elements[i].elementName = EditorGUILayout.TextField(elements[i].elementName, GUILayout.Width(80));
 
@@ -70,9 +176,9 @@ public class UIObjectTemplateGenerator : EditorWindow
 
             // Parent Dropdown
             EditorGUILayout.BeginHorizontal();
-            GUILayout.Space(20);
+            GUILayout.Space(25);
 
-            EditorGUILayout.LabelField("|", EditorStyles.boldLabel, GUILayout.Width(10));
+            
             EditorGUILayout.LabelField("Parent", GUILayout.Width(50));
             string[] elementNames = GetElementNames(elements[i].elementName);
             int selectedParentIndex =
@@ -126,6 +232,15 @@ public class UIObjectTemplateGenerator : EditorWindow
                 case UIElementType.Image:
 
                     EditorGUILayout.LabelField("|", EditorStyles.boldLabel, GUILayout.Width(10));
+                    EditorGUILayout.LabelField("Select Color", GUILayout.Width(80));
+
+                    Color color = EditorGUILayout.ColorField(new Color(), GUILayout.Width(80));
+                    elements[i].colorR = color.r;
+                    elements[i].colorG = color.g;
+                    elements[i].colorB = color.b;
+                    elements[i].colorA = color.a;
+
+                    EditorGUILayout.LabelField("|", EditorStyles.boldLabel, GUILayout.Width(10));
                     EditorGUILayout.LabelField("Select Image", GUILayout.Width(80));
 
                     // Button to open the file panel and select an image
@@ -138,8 +253,7 @@ public class UIObjectTemplateGenerator : EditorWindow
                             elements[i].spritePath = "Assets" + imagePath.Replace(Application.dataPath, "");
                         }
                     }
-                    
-                    
+
 
                     EditorGUILayout.TextField(elements[i].spritePath, GUILayout.Width(80));
                     GUILayout.Space(20);
@@ -164,9 +278,21 @@ public class UIObjectTemplateGenerator : EditorWindow
             GUILayout.Space(20);
             EditorGUILayout.LabelField("|", EditorStyles.boldLabel, GUILayout.Width(10));
             EditorGUILayout.BeginVertical();
+
+            EditorGUILayout.LabelField("RECT TRANSFORM VALUES", GUILayout.Width(170));
+            GUILayout.Space(4);
             // Position
-            //EditorGUILayout.RectField("Rect Values ", new Rect());
             elements[i].position = EditorGUILayout.Vector2Field("Position", elements[i].position);
+
+            EditorGUILayout.Space(5);
+            //Height and width
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Height", GUILayout.Width(50));
+            elements[i].height = EditorGUILayout.FloatField(elements[i].height);
+
+            EditorGUILayout.LabelField("Width", GUILayout.Width(50));
+            elements[i].width = EditorGUILayout.FloatField(elements[i].width);
+            EditorGUILayout.EndHorizontal();
 
             // Rotation
             elements[i].rotation = EditorGUILayout.Vector3Field("Rotation", elements[i].rotation);
@@ -226,198 +352,8 @@ public class UIObjectTemplateGenerator : EditorWindow
         }
     }
 
-
-    private void DrawInstantiateElementTab()
-    {
-        GUIStyle guiStyle = new GUIStyle(GUI.skin.label);
-        guiStyle.fontSize = 14;
-        guiStyle.alignment = TextAnchor.MiddleLeft;
-        guiStyle.fontStyle = FontStyle.Bold;
-
-        GUILayout.Label("UI OBJECT TEMPLATE GENERATOR", guiStyle);
-
-        GUILayout.Space(10);
-
-        // Template Selection Dropdown
-        var label = "Select Template";
-        TemplateDropDownSelector(label);
-
-        GUILayout.Space(10);
-
-        GUILayout.Label("Selected Template: " + GetCurrentTemplateName(), EditorStyles.boldLabel);
-
-        GUILayout.Space(10);
-
-        GUILayout.Label("Generated JSON File Path:");
-        EditorGUILayout.LabelField(SaveSystem.GetCurrentJsonFilePath(templateList, selectedTemplateIndex));
-
-        GUILayout.Space(10);
-
-
-        GUILayout.Label("Template Name:");
-        templateName = EditorGUILayout.TextField(templateName);
-
-        GUILayout.Space(10);
-
-        GUILayout.Label("UI Elements:");
-
-        if (selectedTemplateIndex > 0)
-        {
-            // Load and display UI elements from the selected template
-            UIObjectTemplateData selectedTemplate = templateList[selectedTemplateIndex - 1];
-            elements = new List<UIObjectTemplateElement>(selectedTemplate.elements);
-        }
-
-        // Display UI elements list
-        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
-
-        DisplayUIElements(elements);
-
-        EditorGUILayout.EndScrollView();
-
-        EditorGUILayout.BeginHorizontal();
-
-
-        // Add Element button
-        if (GUILayout.Button("ADD ELEMENT", ButtonsGUI(), GUILayout.Height(30)))
-        {
-            elements.Add(new UIObjectTemplateElement());
-            SwapElements(elements.Count - 1, elements.Count - 2);
-        }
-
-        GUILayout.Space(5);
-
-        // Generate Template button
-        if (GUILayout.Button("GENERATE TEMPLATE", ButtonsGUI(), GUILayout.Height(30)))
-        {
-            GenerateTemplateFromInput();
-        }
-
-        GUILayout.Space(5);
-
-        // Instantiate UI button
-        if (GUILayout.Button("INSTANTIATE UI", ButtonsGUI(), GUILayout.Height(30)))
-        {
-            InstantiateUITemplate();
-        }
-
-        EditorGUILayout.EndHorizontal();
-    }
-
-
-    private GUIStyle ButtonsGUI()
-    {
-        GUIStyle guiStyle = new GUIStyle(GUI.skin.button);
-        guiStyle.fontSize = 16;
-        guiStyle.fontStyle = FontStyle.Bold;
-
-        return guiStyle;
-    }
-
-
-    private void SwapElements(int indexA, int indexB)
-    {
-        (elements[indexA], elements[indexB]) = (elements[indexB], elements[indexA]);
-    }
-
-    private int ParentHierarchySpace(string parentName, int selectedIndex, int currentDepth = 0)
-    {
-        if (parentName is "None" or null || currentDepth >= MAX_HEIRARCHY_DEPTH)
-        {
-            return 0;
-        }
-
-        int parentIndex = GetParentIndex(parentName);
-
-        if (parentIndex < 0 || parentIndex == selectedIndex)
-        {
-            return 0;
-        }
-
-        try
-        {
-            return ParentHierarchySpace(GetParentName(parentName), selectedIndex, currentDepth + 1) + 1;
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Exception in ParentHierarchySpace: {e.Message}");
-            return 0;
-        }
-    }
-
-
-    private string GetParentName(string childName)
-    {
-        for (int i = 0; i < elements.Count; i++)
-        {
-            if (elements[i].elementName == childName && GetParentIndex(elements[i].parentName) != 0)
-            {
-                return elements[i].parentName; // returning the parent object
-            }
-        }
-
-        return "None";
-    }
-
-    private int GetParentIndex(string parentName)
-    {
-        for (int i = 0; i < elements.Count; i++)
-        {
-            if (elements[i].elementName == parentName)
-            {
-                return i + 1; // Adding 1 because 0 is reserved for "None"
-            }
-        }
-
-        return 0; // "None"
-    }
-
-    private string[] GetElementNames(string currentElementName)
-    {
-        string[] elementNames = new string[elements.Count + 1];
-        elementNames[0] = "None";
-
-        for (int i = 0; i < elements.Count; i++)
-        {
-            if (elements[i].elementName != currentElementName)
-            {
-                elementNames[i + 1] = elements[i].elementName;
-            }
-        }
-
-        return elementNames;
-    }
-
-    private string[] GetTemplateNames()
-    {
-        string[] templateNames = new string[templateList.Count + 1];
-        templateNames[0] = "Create New Template";
-
-        for (int i = 0; i < templateList.Count; i++)
-        {
-            templateNames[i + 1] = templateList[i].templateName;
-        }
-
-        return templateNames;
-    }
-
-    private string GetCurrentTemplateName()
-    {
-        if (selectedTemplateIndex == 0)
-        {
-            return "None (Creating New Template)";
-        }
-
-        return templateList[selectedTemplateIndex - 1].templateName;
-    }
-
-
-    private void TemplateDropDownSelector(string label)
-    {
-        string[] templateNames = GetTemplateNames();
-        selectedTemplateIndex = EditorGUILayout.Popup(label, selectedTemplateIndex, templateNames);
-    }
-
+     #region GENERATE,INSTANTIATE FUNCTIONS
+     
     private void GenerateTemplateFromInput()
     {
         if (string.IsNullOrEmpty(templateName))
@@ -509,7 +445,7 @@ public class UIObjectTemplateGenerator : EditorWindow
             switch (elementData.elementType)
             {
                 case UIElementType.Button:
-
+                    //Set Button and ButtonImage
                     Button button = uiElementGameObject.AddComponent<Button>();
                     Image buttonImage = uiElementGameObject.AddComponent<Image>();
 
@@ -522,7 +458,7 @@ public class UIObjectTemplateGenerator : EditorWindow
 
                     break;
                 case UIElementType.Text:
-
+                    //Set Text
                     var text = uiElementGameObject.AddComponent<TextMeshProUGUI>();
                     text.text = elementData.textValue;
                     text.fontSize = elementData.fontSize;
@@ -538,7 +474,7 @@ public class UIObjectTemplateGenerator : EditorWindow
                     break;
 
                 case UIElementType.Template:
-
+                    //Set Template
                     if (!string.IsNullOrEmpty(elementData.templateReference))
                     {
                         int templateIndex = GetTemplateIndex(elementData.templateReference);
@@ -563,6 +499,7 @@ public class UIObjectTemplateGenerator : EditorWindow
 
             // Set position, rotation, and scale based on the template data
             rectTransform.anchoredPosition = new Vector2(elementData.position.x, elementData.position.y);
+            rectTransform.sizeDelta = new Vector2(elementData.width, elementData.height);
             rectTransform.eulerAngles = elementData.rotation;
             rectTransform.localScale = elementData.scale;
         }
@@ -627,7 +564,12 @@ public class UIObjectTemplateGenerator : EditorWindow
                     Image image = uiElementGameObject.AddComponent<Image>();
                     // Load and set the sprite from the specified path
                     Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(elementData.spritePath);
-                    if (sprite != null) image.sprite = sprite;
+                    if (sprite != null)
+                    {
+                        image.sprite = sprite;
+                        image.color = new Color(elementData.colorR, elementData.colorG, elementData.colorB,
+                            elementData.colorA);
+                    }
 
                     break;
             }
@@ -659,11 +601,127 @@ public class UIObjectTemplateGenerator : EditorWindow
         }
     }
 
-    private int GetTemplateIndex(string templateName)
+     #endregion
+
+   
+
+    #region SMALLHELPTOOLS
+
+     private GUIStyle ButtonsGUI()
+    {
+        GUIStyle guiStyle = new GUIStyle(GUI.skin.button);
+        guiStyle.fontSize = 16;
+        guiStyle.fontStyle = FontStyle.Bold;
+
+        return guiStyle;
+    }
+
+    private void TemplateDropDownSelector(string label)
+    {
+        string[] templateNames = GetTemplateNames();
+        selectedTemplateIndex = EditorGUILayout.Popup(label, selectedTemplateIndex, templateNames);
+    }
+
+    private void SwapElements(int indexA, int indexB)
+    {
+        (elements[indexA], elements[indexB]) = (elements[indexB], elements[indexA]);
+    }
+
+    private int ParentHierarchySpace(string parentName, int selectedIndex, int currentDepth = 0)
+    {
+        if (parentName is "None" or null || currentDepth >= MAX_HEIRARCHY_DEPTH)
+        {
+            return 0;
+        }
+
+        int parentIndex = GetParentIndex(parentName);
+
+        if (parentIndex < 0 || parentIndex == selectedIndex)
+        {
+            return 0;
+        }
+
+        try
+        {
+            return ParentHierarchySpace(GetParentName(parentName), selectedIndex, currentDepth + 1) + 1;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Exception in ParentHierarchySpace: {e.Message}");
+            return 0;
+        }
+    }
+    
+    private string GetParentName(string childName)
+    {
+        for (int i = 0; i < elements.Count; i++)
+        {
+            if (elements[i].elementName == childName && GetParentIndex(elements[i].parentName) != 0)
+            {
+                return elements[i].parentName; // returning the parent object
+            }
+        }
+
+        return "None";
+    }
+
+    private int GetParentIndex(string parentName)
+    {
+        for (int i = 0; i < elements.Count; i++)
+        {
+            if (elements[i].elementName == parentName)
+            {
+                return i + 1; // Adding 1 because 0 is reserved for "None"
+            }
+        }
+
+        return 0; // "None"
+    }
+
+    private string[] GetElementNames(string currentElementName)
+    {
+        string[] elementNames = new string[elements.Count + 1];
+        elementNames[0] = "None";
+
+        for (int i = 0; i < elements.Count; i++)
+        {
+            if (elements[i].elementName != currentElementName)
+            {
+                elementNames[i + 1] = elements[i].elementName;
+            }
+        }
+
+        return elementNames;
+    }
+
+    private string[] GetTemplateNames()
+    {
+        string[] templateNames = new string[templateList.Count + 1];
+        templateNames[0] = "Create New Template";
+
+        for (int i = 0; i < templateList.Count; i++)
+        {
+            templateNames[i + 1] = templateList[i].templateName;
+        }
+
+        return templateNames;
+    }
+
+    private string GetCurrentTemplateName()
+    {
+        if (selectedTemplateIndex == 0)
+        {
+            return "None (Creating New Template)";
+        }
+
+        return templateList[selectedTemplateIndex - 1].templateName;
+    }
+    
+    private int GetTemplateIndex(string templateNAME)
     {
         for (int i = 0; i < templateList.Count; i++)
         {
-            if (templateList[i].templateName == templateName)
+            if (templateList[i].templateName == templateNAME)
             {
                 return i + 1; // Adding 1 because 0 is reserved for "Create New Template"
             }
@@ -671,6 +729,19 @@ public class UIObjectTemplateGenerator : EditorWindow
 
         return 0; // Template not found
     }
+    
+    private void MoveElementToBottom(int index)
+    {
+        if (index > 0 && index < elements.Count)
+        {
+            UIObjectTemplateElement element = elements[index];
+            elements.RemoveAt(index);
+            elements.Add(element);
+        }
+    }
+
+    #endregion
+   
 }
 
 public enum UIElementType
@@ -694,23 +765,29 @@ public class UIObjectTemplateElement
     public UIElementType elementType;
 
     public string elementName;
+
     public string buttonText; // Additional properties for Button
     public string buttonSpritePath; // Additional properties for Button
+
     public string textValue; // Additional properties for Text
     public int fontSize; // Additional properties for Text
+
     public string spritePath; // Additional properties for Image
+    public float colorR; //colorData
+    public float colorG;
+    public float colorB;
+    public float colorA;
+
     public Vector2 position; // Position for UI elements
     public Vector3 rotation; // Rotation for UI elements
     public Vector3 scale; // Scale for UI elements
+    public float height; //Height for UI elements
+    public float width; //width for UI elements
+
     public string parentName; // Parent's name for UI elements
     public string templateReference; // Template reference for UI elements
     public int templateReferenceIndex; // Index of the selected template
 
-    //colorData
-    public float r;
-    public float g;
-    public float b;
-    public float a;
 
     [NonSerialized] public UIObjectTemplateData templateData; // Template data for template elements
 }
