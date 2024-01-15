@@ -45,7 +45,7 @@ public static class HelperFunction
         }
     }
 
-    public static string GetParentName(string childName , List<UIObjectTemplateElement> elements)
+    private static string GetParentName(string childName , List<UIObjectTemplateElement> elements)
     {
         for (int i = 0; i < elements.Count; i++)
         {

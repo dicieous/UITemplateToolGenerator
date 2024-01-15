@@ -5,7 +5,7 @@ using System.IO;
 public static class SaveSystem 
 {
     
-    public const string DEFAULT_SAVE_FOLDER = "Assets/UIObjectTemplates";
+    private const string DEFAULT_SAVE_FOLDER = "Assets/UIObjectTemplates";
 
     public static void Init()
     {
@@ -15,11 +15,12 @@ public static class SaveSystem
         }
     }
     
+    
+    //To Save the template
     public static void SaveTemplate(UIObjectTemplateData templateData)
     {
         string jsonData = SerializeTemplateData(templateData);
-
-        // Use the result of SetJsonFilePath() to set the correct JSON file path
+        
         string jsonFilePath = SetJsonFilePath(templateData.templateName);
 
         File.WriteAllText(jsonFilePath, jsonData);
@@ -27,7 +28,7 @@ public static class SaveSystem
         Debug.Log("UI Template generated and saved successfully!");
     }
     
-    
+    //To Load the template
     public static void LoadTemplates(List<UIObjectTemplateData> templateList)
     {
         templateList.Clear();
@@ -45,7 +46,7 @@ public static class SaveSystem
         }
     }
     
-    public static string SetJsonFilePath( string templateName)
+    private static string SetJsonFilePath( string templateName)
     {
         return Path.Combine(DEFAULT_SAVE_FOLDER, templateName + ".json");
     }
@@ -61,12 +62,12 @@ public static class SaveSystem
     }
 
     
-    public static string SerializeTemplateData(UIObjectTemplateData templateData)
+    private static string SerializeTemplateData(UIObjectTemplateData templateData)
     {
         return JsonUtility.ToJson(templateData, true);
     }
 
-    public static UIObjectTemplateData DeserializeTemplateData(string jsonContent)
+   private static UIObjectTemplateData DeserializeTemplateData(string jsonContent)
     {
         return JsonUtility.FromJson<UIObjectTemplateData>(jsonContent);
     }

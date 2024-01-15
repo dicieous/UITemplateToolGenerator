@@ -47,9 +47,6 @@ public class UIObjectTemplateGenerator : EditorWindow
         DrawInstantiateElementTab();
     }
 
-    
-    
-
     private void DrawHeader()
     {
         headerSection.x = 0;
