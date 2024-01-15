@@ -1,9 +1,6 @@
 using UnityEngine;
-using UnityEditor;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine.UI;
 
 public static class SaveSystem 
 {

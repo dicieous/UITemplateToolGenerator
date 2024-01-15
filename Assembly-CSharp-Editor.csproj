@@ -43,6 +43,7 @@
   <ItemGroup>
      <Compile Include="Assets\Editor\SaveSystem.cs" />
      <Compile Include="Assets\Editor\UITemplateGeneratorTool.cs" />
+     <Compile Include="Assets\Editor\HelperFunction.cs" />
      <Folder Include="Assets\Editor" />
      <Reference Include="UnityEngine">
      <HintPath>C:\Program Files\Unity\Hub\Editor\2021.3.16f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
